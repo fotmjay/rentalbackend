@@ -15,6 +15,8 @@ module.exports = {
   },
   createTenant: async function (req, res, next) {
     const tenant = req.body.tenant;
+    console.log(tenant);
+    console.log(tenant.phoneNumbers);
     try {
       const newTenant = new Tenant({
         firstName: tenant.firstName,
@@ -24,6 +26,7 @@ module.exports = {
         notes: tenant.notes,
         recommended: tenant.recommended,
         owner: res.locals.user.id,
+        phoneNumbers: tenant.phoneNumbers,
       });
       if (tenant.currentAddress !== "") {
         newTenant.addressId = tenant.currentAddress;

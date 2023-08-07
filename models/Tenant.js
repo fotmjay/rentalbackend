@@ -21,13 +21,13 @@ const TenantSchema = mongoose.Schema({
     required: true,
     default: "",
   },
-  phoneNumber: {
+  phoneNumbers: {
     type: [],
-    required: true,
     default: [],
   },
   addressId: {
-    type: { type: mongoose.SchemaTypes.ObjectId, ref: "Address" },
+    type: mongoose.SchemaTypes.ObjectId,
+    ref: "Address",
   },
   notes: {
     type: String,
