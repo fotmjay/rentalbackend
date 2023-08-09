@@ -10,29 +10,33 @@ module.exports = {
       return;
     }
     const username = validator.trim(req.body.username).toLowerCase();
-    const exists = await User.findOne({ username: username });
-    if (!exists) {
-      res.status(400).json({ success: false, error: "Username not found." });
-      return;
-    } else {
-      if (exists.validPassword(req.body.password)) {
-        const token = jwt.sign(
-          { id: exists._id, username: exists.username, loggedOut: false },
-          process.env.SECRET_JWT_CODE,
-          { expiresIn: "1h" }
-        );
-        res.status(200).json({ success: true, token: token, message: "Successfully logged in!" });
+    try {
+      const exists = await User.findOne({ username: username });
+      if (!exists) {
+        res.status(400).json({ success: false, error: "Username not found." });
         return;
       } else {
-        res.status(400).json({ success: false, error: "Username and password do not match." });
-        return;
+        if (exists.validPassword(req.body.password)) {
+          const token = jwt.sign(
+            { id: exists._id, username: exists.username, loggedOut: false },
+            process.env.SECRET_JWT_CODE,
+            { expiresIn: "1h" }
+          );
+          res.status(200).json({ success: true, token: token, message: "Successfully logged in!" });
+          return;
+        } else {
+          res.status(400).json({ success: false, error: "Username and password do not match." });
+          return;
+        }
       }
+    } catch (err) {
+      console.error(err + " : ERROR ");
+      res.status(500).json({ success: false, error: "A network error occured while logging in.  Please try again." });
+      return;
     }
   },
   register: async (req, res, next) => {
     // FIELD VALIDATION
-    console.log("we got here");
-    console.log(req.body);
     const validationErrors = [];
     const email = validator.trim(req.body.email).toLowerCase();
     const username = validator.trim(req.body.username).toLowerCase();
@@ -58,7 +62,7 @@ module.exports = {
         newUser.setPassword(req.body.password);
         const saved = await newUser.save();
         if (saved) {
-          res.status(200).json({ success: true, message: "Account creation successful, you may now log in." });
+          module.exports.login(req, res, next);
           return;
         } else {
           res

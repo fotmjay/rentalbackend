@@ -15,8 +15,6 @@ module.exports = {
   },
   createTenant: async function (req, res, next) {
     const tenant = req.body.tenant;
-    console.log(tenant);
-    console.log(tenant.phoneNumbers);
     try {
       const newTenant = new Tenant({
         firstName: tenant.firstName,
@@ -24,20 +22,19 @@ module.exports = {
         birthDate: tenant.birthDate,
         email: tenant.email,
         notes: tenant.notes,
+        addressId: tenant.currentAddress || "",
         recommended: tenant.recommended,
         owner: res.locals.user.id,
         phoneNumbers: tenant.phoneNumbers,
       });
-      if (tenant.currentAddress !== "") {
-        newTenant.addressId = tenant.currentAddress;
-      }
       const saveToDb = await newTenant.save();
-      console.log(saveToDb);
       if (saveToDb) {
-        const relatedAddress = await Address.findById(saveToDb.addressId);
-        console.log(relatedAddress);
-        relatedAddress.tenantList = [...relatedAddress.tenantList, saveToDb._id];
-        relatedAddress.save();
+        if (tenant.currentAddress !== "") {
+          const relatedAddress = await Address.findById(saveToDb.addressId);
+          relatedAddress.tenantList = [...relatedAddress.tenantList, saveToDb._id];
+          relatedAddress.save();
+        }
+
         res.status(200).json({ success: true, message: "You added a tenant." });
       }
     } catch (err) {
@@ -46,18 +43,38 @@ module.exports = {
     }
   },
   createAddress: async function (req, res, next) {
-    const newAddress = new Address({
-      streetNumber: 22,
-      appNumber: 3,
-      streetName: "des ormes",
-      tenantList: [],
-      rentPrice: 775,
-      alerts: [],
-      leased: true,
-      notes: "neighbors are whiny",
-      owner: res.locals.user.id,
-    });
-    Address.create(newAddress);
-    res.status(200).json({ success: true, message: "You added an address." });
+    console.log(req.body);
+    const address = req.body.address;
+    try {
+      const newAddress = new Address({
+        streetNumber: address.streetNumber,
+        appNumber: address.appNumber,
+        streetName: address.streetName,
+        tenantList: address.tenantList,
+        rentPrice: address.rentPrice,
+        alerts: address.alerts,
+        leased: address.leased,
+        notes: address.notes,
+        owner: res.locals.user.id,
+      });
+      const saveToDb = await newAddress.save();
+
+      if (saveToDb) {
+        if (address.tenantList.length > 0) {
+          for (let i = 0; i < address.tenantList.length; i++) {
+            const relatedTenant = await Tenant.findById(address.tenantList[i]._id);
+            if (relatedTenant) {
+              relatedTenant.addressId = saveToDb._id;
+              relatedTenant.save();
+            }
+          }
+        }
+
+        res.status(200).json({ success: true, message: "You added an address." });
+      }
+    } catch (err) {
+      console.error(err);
+      res.status(400).json({ success: false, error: `${err._message}.` });
+    }
   },
 };

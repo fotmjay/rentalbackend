@@ -13,7 +13,6 @@ const UserSchema = mongoose.Schema({
     lowercase: true,
     required: true,
   },
-  addressList: [{ type: mongoose.Schema.Types.ObjectId }],
   hash: String,
   salt: String,
 });
