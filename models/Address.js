@@ -33,11 +33,6 @@ const AddressSchema = mongoose.Schema({
     type: String,
     default: "",
   },
-  leased: {
-    type: Boolean,
-    required: true,
-    default: false,
-  },
   owner: {
     type: mongoose.SchemaTypes.ObjectId,
     required: true,

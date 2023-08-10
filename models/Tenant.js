@@ -18,7 +18,6 @@ const TenantSchema = mongoose.Schema({
   },
   email: {
     type: String,
-    required: true,
     default: "",
   },
   phoneNumbers: {
@@ -31,7 +30,6 @@ const TenantSchema = mongoose.Schema({
   },
   notes: {
     type: String,
-    required: true,
     default: "",
   },
   recommended: {

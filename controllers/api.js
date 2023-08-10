@@ -21,8 +21,8 @@ module.exports = {
         lastName: tenant.lastName,
         birthDate: tenant.birthDate,
         email: tenant.email,
-        notes: tenant.notes,
-        addressId: tenant.currentAddress || "",
+        notes: tenant.notes || "",
+        addressId: tenant.currentAddress || null,
         recommended: tenant.recommended,
         owner: res.locals.user.id,
         phoneNumbers: tenant.phoneNumbers,
@@ -54,7 +54,7 @@ module.exports = {
         rentPrice: address.rentPrice,
         alerts: address.alerts,
         leased: address.leased,
-        notes: address.notes,
+        notes: address.notes || "",
         owner: res.locals.user.id,
       });
       const saveToDb = await newAddress.save();
@@ -62,10 +62,17 @@ module.exports = {
       if (saveToDb) {
         if (address.tenantList.length > 0) {
           for (let i = 0; i < address.tenantList.length; i++) {
+            console.log(address.tenantList[i]._id);
             const relatedTenant = await Tenant.findById(address.tenantList[i]._id);
             if (relatedTenant) {
+              const oldAddressId = relatedTenant.addressId;
               relatedTenant.addressId = saveToDb._id;
-              relatedTenant.save();
+              await relatedTenant.save();
+              if (oldAddressId) {
+                const oldAddress = await Address.findById(oldAddressId);
+                oldAddress.tenantList = oldAddress.tenantList.filter((tenant) => tenant._id === saveToDb._id);
+                await oldAddress.save();
+              }
             }
           }
         }
