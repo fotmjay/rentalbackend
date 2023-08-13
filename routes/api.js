@@ -11,4 +11,7 @@ router.get("/tenant", ensureAuth, apiController.tenantData);
 router.post("/createTenant", ensureAuth, apiController.createTenant);
 router.post("/createAddress", ensureAuth, apiController.createAddress);
 
+router.put("edit/tenant/:id", ensureAuth, apiController.editTenant);
+router.put("edit/address/:id", ensureAuth, apiController.editAddress);
+
 module.exports = router;

@@ -84,4 +84,10 @@ module.exports = {
       res.status(400).json({ success: false, error: `${err._message}.` });
     }
   },
+  editTenant: async function (req, res, next) {
+    console.log(req.params.id);
+  },
+  editAddress: async function (req, res, next) {
+    console.log(req.params.id);
+  },
 };
