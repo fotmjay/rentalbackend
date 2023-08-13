@@ -14,7 +14,7 @@ module.exports = {
     res.status(200).json({ success: true, message: "Tenant data available sent.", data: data });
   },
   createTenant: async function (req, res, next) {
-    const tenant = req.body.tenant;
+    const tenant = req.body.data;
     try {
       const newTenant = new Tenant({
         firstName: tenant.firstName,
@@ -44,7 +44,7 @@ module.exports = {
   },
   createAddress: async function (req, res, next) {
     console.log(req.body);
-    const address = req.body.address;
+    const address = req.body.data;
     try {
       const newAddress = new Address({
         streetNumber: address.streetNumber,
