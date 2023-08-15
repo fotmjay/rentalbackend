@@ -5,18 +5,18 @@ require("dotenv").config({ path: "./config/.env" });
 
 module.exports = {
   login: async (req, res, next) => {
-    if (!req.body.username || !req.body.password) {
+    if (!req.body.data.username || !req.body.data.password) {
       res.status(400).json({ success: false, error: "Please supply a username and password." });
       return;
     }
-    const username = validator.trim(req.body.username).toLowerCase();
+    const username = validator.trim(req.body.data.username).toLowerCase();
     try {
       const exists = await User.findOne({ username: username });
       if (!exists) {
         res.status(400).json({ success: false, error: "Username not found." });
         return;
       } else {
-        if (exists.validPassword(req.body.password)) {
+        if (exists.validPassword(req.body.data.password)) {
           const token = jwt.sign(
             { id: exists._id, username: exists.username, loggedOut: false },
             process.env.SECRET_JWT_CODE,
@@ -38,12 +38,14 @@ module.exports = {
   register: async (req, res, next) => {
     // FIELD VALIDATION
     const validationErrors = [];
-    const email = validator.trim(req.body.email).toLowerCase();
-    const username = validator.trim(req.body.username).toLowerCase();
+    const email = validator.trim(req.body.data.email).toLowerCase();
+    const username = validator.trim(req.body.data.username).toLowerCase();
     if (username.length < 5) validationErrors.push({ message: "Username needs to be at least 6 characters." });
-    if (req.body.password.length < 8) validationErrors.push({ message: "Password needs to be at least 8 characters." });
-    if (!validator.isEmail(req.body.email)) validationErrors.push({ message: "Please enter a valid email address." });
-    if (req.body.password !== req.body.confirmPass || validator.isEmpty(req.body.password))
+    if (req.body.data.password.length < 8)
+      validationErrors.push({ message: "Password needs to be at least 8 characters." });
+    if (!validator.isEmail(req.body.data.email))
+      validationErrors.push({ message: "Please enter a valid email address." });
+    if (req.body.data.password !== req.body.data.confirmPass || validator.isEmpty(req.body.data.password))
       validationErrors.push({ message: "Passwords do not match." });
 
     if (validationErrors.length > 0) {
@@ -59,7 +61,7 @@ module.exports = {
       } else {
         let newUser = new User({ username: username, email: email });
         // Call setPassword function to hash password and set it
-        newUser.setPassword(req.body.password);
+        newUser.setPassword(req.body.data.password);
         const saved = await newUser.save();
         if (saved) {
           module.exports.login(req, res, next);
