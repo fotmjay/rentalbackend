@@ -21,6 +21,7 @@ module.exports = {
   },
   createTenant: async function (req, res, next) {
     const tenant = req.body.data;
+    const refreshToken = res.locals.refreshToken;
     try {
       const newTenant = new Tenant({
         firstName: tenant.firstName,
@@ -49,7 +50,7 @@ module.exports = {
     }
   },
   createAddress: async function (req, res, next) {
-    console.log(req.body);
+    const refreshToken = res.locals.refreshToken;
     const address = req.body.data;
     try {
       const newAddress = new Address({

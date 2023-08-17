@@ -9,7 +9,6 @@ module.exports = {
       let decoded;
       try {
         decoded = jwt.verify(authorization, process.env.SECRET_JWT_CODE);
-        console.log(decoded);
       } catch (e) {
         if (e.name === "TokenExpiredError") {
           res.status(401).json({ success: false, error: "Authorization expired, please log back in." });
