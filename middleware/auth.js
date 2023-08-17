@@ -9,21 +9,29 @@ module.exports = {
       let decoded;
       try {
         decoded = jwt.verify(authorization, process.env.SECRET_JWT_CODE);
+        console.log(decoded);
       } catch (e) {
-        res.status(401).json({ success: false, error: "Invalid token" });
+        if (e.name === "TokenExpiredError") {
+          res.status(401).json({ success: false, error: "Authorization expired, please log back in." });
+        } else {
+          res.status(401).json({ success: false, error: "Invalid token." });
+        }
         return;
       }
       const loggedInUser = await User.findById(decoded.id);
       if (loggedInUser) {
         res.locals.user = loggedInUser;
+        res.locals.refreshToken = jwt.sign(
+          { id: loggedInUser._id, username: loggedInUser.username },
+          process.env.SECRET_JWT_CODE,
+          { expiresIn: process.env.JWT_EXPIRATION }
+        );
         next();
       } else {
         res.status(401).json({ success: false, error: "The user related to that token does not exist." });
-        return;
       }
     } else {
-      res.status(401).json({ success: false, error: "Access" });
-      return;
+      res.status(401).json({ success: false, error: "Please log in." });
     }
   },
 };

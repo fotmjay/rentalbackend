@@ -5,13 +5,19 @@ const Tenant = require("../models/Tenant");
 module.exports = {
   addressData: async (req, res) => {
     const user = res.locals.user;
+    const refreshToken = res.locals.refreshToken;
     const data = await Address.find({ owner: user.id }).populate("tenantList").sort({ streetName: "asc" }).lean();
-    res.status(200).json({ success: true, message: "Address data available sent.", data: data });
+    res
+      .status(200)
+      .json({ success: true, refreshToken: refreshToken, message: "Address data available sent.", data: data });
   },
   tenantData: async (req, res) => {
     const user = res.locals.user;
+    const refreshToken = res.locals.refreshToken;
     const data = await Tenant.find({ owner: user.id }).sort({ firstName: "asc" }).lean();
-    res.status(200).json({ success: true, message: "Tenant data available sent.", data: data });
+    res
+      .status(200)
+      .json({ success: true, refreshToken: refreshToken, message: "Tenant data available sent.", data: data });
   },
   createTenant: async function (req, res, next) {
     const tenant = req.body.data;
@@ -35,7 +41,7 @@ module.exports = {
           relatedAddress.save();
         }
 
-        res.status(200).json({ success: true, message: "You added a tenant." });
+        res.status(200).json({ success: true, refreshToken: refreshToken, message: "You added a tenant." });
       }
     } catch (err) {
       console.error(err);
@@ -77,7 +83,7 @@ module.exports = {
           }
         }
 
-        res.status(200).json({ success: true, message: "You added an address." });
+        res.status(200).json({ success: true, refreshToken: refreshToken, message: "You added an address." });
       }
     } catch (err) {
       console.error(err);

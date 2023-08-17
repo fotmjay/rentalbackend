@@ -20,7 +20,7 @@ module.exports = {
           const token = jwt.sign(
             { id: exists._id, username: exists.username, loggedOut: false },
             process.env.SECRET_JWT_CODE,
-            { expiresIn: "10s" }
+            { expiresIn: process.env.JWT_EXPIRATION }
           );
           res.status(200).json({ success: true, token: token, message: "Successfully logged in!" });
           return;
