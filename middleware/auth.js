@@ -13,10 +13,6 @@ module.exports = {
         res.status(401).json({ success: false, error: "Invalid token" });
         return;
       }
-      if (decoded.loggedOut === true) {
-        res.status(401).json({ success: false, error: "Token expired." });
-        return;
-      }
       const loggedInUser = await User.findById(decoded.id);
       if (loggedInUser) {
         res.locals.user = loggedInUser;
