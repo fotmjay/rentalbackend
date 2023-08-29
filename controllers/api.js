@@ -95,6 +95,7 @@ module.exports = {
   },
   editTenant: async function (req, res, next) {
     const tenant = req.body.data;
+    console.log(tenant);
     const refreshToken = res.locals.refreshToken;
     try {
       const updatedTenant = {
@@ -110,20 +111,18 @@ module.exports = {
       };
       const update = await Tenant.findOneAndUpdate({ _id: req.params.id }, updatedTenant);
       if (update) {
-        if (tenant.addressId) {
-          // Add the tenant to the new address tenant list if it's new address is not null.
-          const newAddress = await Address.findById(tenant.addressId);
-          console.log(update);
-          newAddress.tenantList.push(update._id);
-          newAddress.save();
-        }
         if (update.addressId) {
           // Remove the tenant from the old address tenant list if old address wasn't null.
           // Turn the tenant in the list (array of ObjectIds) to a string and filter it with the ID.
           const oldAddress = await Address.findById(update.addressId);
-          console.log(oldAddress);
           oldAddress.tenantList = oldAddress.tenantList.filter((tenant) => !tenant.toString().includes(update._id));
           oldAddress.save();
+        }
+        if (tenant.addressId) {
+          // Add the tenant to the new address tenant list if it's new address is not null.
+          const newAddress = await Address.findById(tenant.addressId);
+          newAddress.tenantList.push(update._id);
+          newAddress.save();
         }
       }
       res.status(200).json({ success: true, refreshToken: refreshToken, message: "You updated a tenant." });
