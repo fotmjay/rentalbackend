@@ -61,7 +61,6 @@ module.exports = {
         tenantList: address.tenantList,
         rentPrice: address.rentPrice,
         alerts: address.alerts,
-        leased: address.leased,
         notes: address.notes || "",
         owner: res.locals.user.id,
       });
@@ -95,7 +94,6 @@ module.exports = {
   },
   editTenant: async function (req, res, next) {
     const tenant = req.body.data;
-    console.log(tenant);
     const refreshToken = res.locals.refreshToken;
     try {
       const updatedTenant = {
@@ -110,7 +108,7 @@ module.exports = {
         phoneNumbers: tenant.phoneNumbers,
       };
       const update = await Tenant.findOneAndUpdate({ _id: req.params.id }, updatedTenant);
-      if (update) {
+      if (update.addressId !== tenant.addressId) {
         if (update.addressId) {
           // Remove the tenant from the old address tenant list if old address wasn't null.
           // Turn the tenant in the list (array of ObjectIds) to a string and filter it with the ID.
@@ -132,8 +130,44 @@ module.exports = {
     }
   },
   editAddress: async function (req, res, next) {
-    console.log(req.params.id);
     const refreshToken = res.locals.refreshToken;
-    res.status(200).json({ success: true, refreshToken: refreshToken, message: "You updated an address." });
+    const address = req.body.data;
+    try {
+      const updatedAddress = {
+        streetNumber: address.streetNumber,
+        appNumber: address.appNumber,
+        streetName: address.streetName,
+        tenantList: address.tenantList,
+        rentPrice: address.rentPrice,
+        alerts: address.alerts,
+        notes: address.notes || "",
+        owner: res.locals.user.id,
+      };
+      const update = await Address.findOneAndUpdate({ _id: req.params.id }, updatedAddress);
+      for (let i = 0; i < update.tenantList.length; i++) {
+        if (!address.tenantList.includes(update.tenantList[i])) {
+          await Tenant.findOneAndUpdate({ _id: update.tenantList[i]._id }, { addressId: null });
+        }
+      }
+      for (let i = 0; i < address.tenantList.length; i++) {
+        if (!update.tenantList.includes(address.tenantList[i])) {
+          const movedTenant = await Tenant.findOneAndUpdate(
+            { _id: address.tenantList[i]._id },
+            { addressId: req.params.id }
+          );
+          const oldAddress = await Address.findById(movedTenant.addressId);
+          if (oldAddress) {
+            oldAddress.tenantList = oldAddress.tenantList.filter(
+              (tenant) => !tenant.toString().includes(movedTenant._id)
+            );
+            await oldAddress.save();
+          }
+        }
+      }
+      res.status(200).json({ success: true, refreshToken: refreshToken, message: "You updated an address." });
+    } catch (err) {
+      console.error(err);
+      res.status(400).json({ success: false, error: `${err._message}.` });
+    }
   },
 };
