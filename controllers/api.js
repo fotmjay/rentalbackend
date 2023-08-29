@@ -29,14 +29,14 @@ module.exports = {
         birthDate: tenant.birthDate,
         email: tenant.email,
         notes: tenant.notes || "",
-        addressId: tenant.currentAddress || null,
+        addressId: tenant.addressId || null,
         recommended: tenant.recommended,
         owner: res.locals.user.id,
         phoneNumbers: tenant.phoneNumbers,
       });
       const saveToDb = await newTenant.save();
       if (saveToDb) {
-        if (tenant.currentAddress !== "") {
+        if (tenant.addressId !== "") {
           const relatedAddress = await Address.findById(saveToDb.addressId);
           relatedAddress.tenantList = [...relatedAddress.tenantList, saveToDb._id];
           relatedAddress.save();

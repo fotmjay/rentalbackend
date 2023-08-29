@@ -12,7 +12,7 @@ const TenantSchema = mongoose.Schema({
     required: true,
   },
   birthDate: {
-    type: [Date],
+    type: Date,
     required: true,
     default: undefined,
   },
