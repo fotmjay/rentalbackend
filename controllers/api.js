@@ -2,6 +2,7 @@ const User = require("../models/User");
 const Address = require("../models/Address");
 const Tenant = require("../models/Tenant");
 const mongoose = require("mongoose");
+const validator = require("validator");
 
 module.exports = {
   addressData: async (req, res) => {
@@ -23,6 +24,23 @@ module.exports = {
   createTenant: async function (req, res, next) {
     const tenant = req.body.data;
     const refreshToken = res.locals.refreshToken;
+    const validationErrors = [];
+    const email = validator.trim(tenant.email).toLowerCase();
+    if (!validator.isEmail(req.body.data.email))
+      validationErrors.push({ error: "Please enter a valid email address." });
+    if (tenant.birthDate && !validator.isDate(tenant.birthDate))
+      validationErrors.push({ error: "Please enter a valid date of birth or leave it empty." });
+    for (let i = 0; i < tenant.phoneNumbers.length; i++) {
+      if (/^(1\s|1|)?((\(\d{3}\))|\d{3})(\-|\s)?(\d{3})(\-|\s)?(\d{4})$/.test(tenant.phoneNumbers[i].number)) {
+      } else {
+        validationErrors.push({ error: "Phonenumbers needs to be in 000-000-0000 format." });
+      }
+    }
+    if (validationErrors.length > 0) {
+      console.log(validationErrors);
+      res.status(400).json({ success: false, error: validationErrors });
+      return;
+    }
     try {
       const newTenant = new Tenant({
         firstName: tenant.firstName,
@@ -35,6 +53,7 @@ module.exports = {
         owner: res.locals.user.id,
         phoneNumbers: tenant.phoneNumbers,
       });
+
       const saveToDb = await newTenant.save();
       if (saveToDb) {
         if (tenant.addressId !== "") {
@@ -64,6 +83,7 @@ module.exports = {
         notes: address.notes || "",
         owner: res.locals.user.id,
       });
+
       const saveToDb = await newAddress.save();
 
       if (saveToDb) {
