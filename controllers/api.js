@@ -3,6 +3,7 @@ const Address = require("../models/Address");
 const Tenant = require("../models/Tenant");
 const mongoose = require("mongoose");
 const validator = require("validator");
+const { formatPhoneNumber } = require("../helpers/formats");
 
 module.exports = {
   addressData: async (req, res) => {
@@ -32,6 +33,12 @@ module.exports = {
       validationErrors.push({ error: "Please enter a valid date of birth or leave it empty." });
     for (let i = 0; i < tenant.phoneNumbers.length; i++) {
       if (/^(1\s|1|)?((\(\d{3}\))|\d{3})(\-|\s)?(\d{3})(\-|\s)?(\d{4})$/.test(tenant.phoneNumbers[i].number)) {
+        const formatted = formatPhoneNumber(tenant.phoneNumbers[i].number);
+        if (formatted) {
+          tenant.phoneNumbers[i].number = formatted;
+        } else {
+          validationErrors.push({ error: "Phonenumbers needs to be in 000-000-0000 format." });
+        }
       } else {
         validationErrors.push({ error: "Phonenumbers needs to be in 000-000-0000 format." });
       }

@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const validator = require("validator");
 const jwt = require("jsonwebtoken");
+const { validateUser } = require("../helpers/validateFields");
 require("dotenv").config({ path: "./config/.env" });
 
 module.exports = {
@@ -37,31 +38,27 @@ module.exports = {
   },
   register: async (req, res, next) => {
     // FIELD VALIDATION
-    const validationErrors = [];
-    const email = validator.trim(req.body.data.email).toLowerCase();
-    const username = validator.trim(req.body.data.username).toLowerCase();
-    if (username.length < 5) validationErrors.push({ message: "Username needs to be at least 6 characters." });
-    if (req.body.data.password.length < 8)
-      validationErrors.push({ message: "Password needs to be at least 8 characters." });
-    if (!validator.isEmail(req.body.data.email))
-      validationErrors.push({ message: "Please enter a valid email address." });
-    if (req.body.data.password !== req.body.data.confirmPass || validator.isEmpty(req.body.data.password))
-      validationErrors.push({ message: "Passwords do not match." });
-
-    if (validationErrors.length > 0) {
+    const validated = validateUser(req.body.data);
+    if (!validated.success) {
+      const validationErrors = [];
+      for (let i = 0; i < validated.errors.length; i++) {
+        validationErrors.push({ message: validated.errors[i].message });
+      }
       console.log(validationErrors);
       res.status(400).json({ success: false, error: validationErrors });
       return;
     }
     try {
-      const exists = await User.findOne({ $or: [{ email: email }, { username: username }] });
+      const exists = await User.findOne({
+        $or: [{ email: validated.data.email }, { username: validated.data.username }],
+      });
       if (exists) {
         res.status(400).json({ success: false, error: "A user with that username or email already exists." });
         return;
       } else {
-        let newUser = new User({ username: username, email: email });
+        let newUser = new User({ username: validated.data.username, email: validated.data.email });
         // Call setPassword function to hash password and set it
-        newUser.setPassword(req.body.data.password);
+        newUser.setPassword(validated.data.password);
         const saved = await newUser.save();
         if (saved) {
           module.exports.login(req, res, next);
