@@ -1,7 +1,6 @@
 {
-  "name": "serendipity-generator",
+  "name": "rental-backend",
   "version": "1.0.0",
-  "description": "Stumble upon your life!",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
