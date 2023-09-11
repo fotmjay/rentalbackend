@@ -27,10 +27,10 @@ module.exports = {
     const refreshToken = res.locals.refreshToken;
     const validationErrors = [];
     const email = validator.trim(tenant.email).toLowerCase();
-    if (!validator.isEmail(req.body.data.email))
-      validationErrors.push({ error: "Please enter a valid email address." });
+    if (!validator.isEmail(email) && email !== "")
+      validationErrors.push({ error: "Please enter a valid email address or leave blank." });
     if (tenant.birthDate && !validator.isDate(tenant.birthDate))
-      validationErrors.push({ error: "Please enter a valid date of birth or leave it empty." });
+      validationErrors.push({ error: "Please enter a valid date of birth or leave blank." });
     for (let i = 0; i < tenant.phoneNumbers.length; i++) {
       if (/^(1\s|1|)?((\(\d{3}\))|\d{3})(\-|\s)?(\d{3})(\-|\s)?(\d{4})$/.test(tenant.phoneNumbers[i].number)) {
         const formatted = formatPhoneNumber(tenant.phoneNumbers[i].number);
@@ -53,7 +53,7 @@ module.exports = {
         firstName: tenant.firstName,
         lastName: tenant.lastName,
         birthDate: tenant.birthDate,
-        email: tenant.email,
+        email: email,
         notes: tenant.notes || "",
         addressId: tenant.addressId || null,
         recommended: tenant.recommended,
