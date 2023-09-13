@@ -173,13 +173,13 @@ module.exports = {
       const update = await Address.findOneAndUpdate({ _id: req.params.id }, updatedAddress);
       for (let i = 0; i < update.tenantList.length; i++) {
         if (!address.tenantList.includes(update.tenantList[i])) {
-          await Tenant.findOneAndUpdate({ _id: update.tenantList[i]._id }, { addressId: null });
+          await Tenant.findOneAndUpdate({ _id: update.tenantList[i] }, { addressId: null });
         }
       }
       for (let i = 0; i < address.tenantList.length; i++) {
         if (!update.tenantList.includes(address.tenantList[i])) {
           const movedTenant = await Tenant.findOneAndUpdate(
-            { _id: address.tenantList[i]._id },
+            { _id: address.tenantList[i] },
             { addressId: req.params.id }
           );
           const oldAddress = await Address.findById(movedTenant.addressId);
